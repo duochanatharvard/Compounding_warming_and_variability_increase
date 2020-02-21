@@ -15,7 +15,7 @@ colormap_CD:https://github.com/duochanatharvard/colormap_CD
 
 m_map: https://github.com/duochanatharvard/Homogeneous_early_20th_century_warming/tree/master/m_map
 
-__Simply run STV_main.m in the main folder.__
+__Simply run STV_main.m in this folder.__
 
 STV_main.m calculates warming and variance statistics ("ACDC_paper_revisit_2020.mat") from regridded monthly CMIP5 data ("Subset_summertime_tas_all_models_20N_poleward.mat") and generates Fig. 1 to 3 in the main text.
 
