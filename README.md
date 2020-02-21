@@ -8,7 +8,11 @@ Matlab scripts and key data associated with the paper "Summertime temperature va
 __Dependency:__
 
 CDC_toolbox: https://github.com/duochanatharvard/CD_Computation
+
 CDF_toolbox: https://github.com/duochanatharvard/CDF_Figures
+
+colormap_CD:https://github.com/duochanatharvard/colormap_CD
+
 m_map: https://github.com/duochanatharvard/Homogeneous_early_20th_century_warming/tree/master/m_map
 
 __Simply run STV_main.m in the main folder.__
