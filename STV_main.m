@@ -8,6 +8,7 @@ clearvars -except exp_num dir
 dir = [pwd,'/'];
 
 load([dir,'Subset_summertime_tas_all_models_20N_poleward.mat'],'tas');
+% load([dir,'Subset_summertime_data_all_ensembles.mat'],'tas','model_save');
 tas_detrend = CDC_detrend(tas,4,3);
 
 lon   = repmat([1.25:2.5:360]',1,28);
@@ -64,8 +65,9 @@ for md = 1:23
 end
 
 file_save = [dir,'ACDC_paper_revisit_2020.mat'];
+% file_save = [dir,'ACDC_paper_revisit_2020_revision_1.mat'];
 save(file_save,'model_var','model_var_std','model_var_reg','model_var_reg_member',...
-    'model_mean','model_mean_std','model_mean_reg','model_mean_reg_member','lon','lat','-v7.3')
+    'model_mean','model_mean_std','model_mean_reg','model_mean_reg_member','lon','lat','model_save','-v7.3')
  
 
 %% *************************************************************************
@@ -75,6 +77,7 @@ clear;
 
 dir  = [pwd,'/'];
 load([dir,'ACDC_paper_revisit_2020.mat'])
+% load([dir,'ACDC_paper_revisit_2020_revision_1.mat']);
 
 model_use  = {'ACCESS1-0'  ,  'ACCESS1-3' ,   'CCSM4'    ,'CESM1-BGC' ,   'CESM1-CAM5'   , 'CNRM-CM5'  ,  'CSIRO-Mk3-6-0',...
     'GFDL-CM3','GFDL-ESM2G',    'GFDL-ESM2M'  ,  'GISS-E2-H-CC' ,   'GISS-E2-H' ,   'GISS-E2-R-CC' ,   'GISS-E2-R',...
@@ -103,8 +106,9 @@ clear('sig')
 sig(:,:,1) = [nan(144,44) sum((model_mean(:,:,l_use,2) - model_mean(:,:,l_use,1))>0,3) > (23*.75)]; 
 sig(:,:,2) = 0;
 CDF_plot_map('pcolor',pic,...
-    [st_full_subcoast,'crange',6,'cmap',b2rCD(12),...
+    [st_full_subcoast,'crange',6,'cmap',hotCD(12),...
     'bartit','CMIP5 mean change in temperature [^oC]','plabel',' ','sig',sig,'sigtype','marker']);
+caxis([3 6])
 
 figure(2);  clf;
 pic = [nan(144,44) nanmean(model_var(:,:,l_use,2) - model_var(:,:,l_use,1),3)];
@@ -142,7 +146,7 @@ CDF_plot_map('pcolor',pic,...
 [slope, ~, slope_member, ~] = ...
     CDC_yorkfit_bt(model_var(:,:,l_use,2)-model_var(:,:,l_use,1),model_mean(:,:,l_use,2)-model_mean(:,:,l_use,1),...
                    sqrt(model_var_std(:,:,l_use,2).^2 + model_var_std(:,:,l_use,1).^2),...
-                   sqrt(model_mean_std(:,:,l_use,2).^2 + model_mean_std(:,:,l_use,1).^2),0,3,1000);
+                   sqrt(model_mean_std(:,:,l_use,2).^2 + model_mean_std(:,:,l_use,1).^2),0,3,100000);
                 
 figure(5); clf;
 
@@ -183,7 +187,7 @@ x_std   = CDC_std(model_mean_reg_member(l_use,2,:,ct_reg) - model_mean_reg_membe
 y_std   = CDC_std(model_var_reg_member(l_use,2,:,ct_reg) - model_var_reg_member(l_use,1,:,ct_reg),3);
 r       = 0;
 
-N       = 10000;
+N       = 100000;
 P.mute_output = 1;
 
 l = 1:23;
@@ -193,7 +197,7 @@ l = 1:23;
 [slope_member,I] = sort(slope_member);
 inter_member = inter_member(I);
 
-% Plot the shading for 2 s.d.
+% Plot the shading for 1 s.d.
 clear('yy')
 x1_pic = 2;
 x2_pic = 9;
@@ -227,37 +231,38 @@ set(gcf,'position',[.1 1 18 10],'unit','inches')
 % *************************************************************************
 clear;
 
-target    = 32;
+target    = 30;
 hist_clim = 19.38;
-hist_var  = 2.54;
-
-warming   = 3.3;  % warming rate such that the variance does not change
-rcp_var   = hist_var + 0.40 * warming - 1.32;
+hist_var  = 2.53;
 
 t = 1:0.01:40;
 
 figure(1); clf; hold on
-h(1) = plot(t,normpdf(t,hist_clim,sqrt(hist_var)),'k','linewi',2);
-warming = 7.5;
-h(2) = plot(t,normpdf(t,hist_clim + warming,sqrt(hist_var + 0.40 .* warming - 1.32)),'r','linewi',2);
-h(3) = plot(t,normpdf(t,hist_clim + warming,sqrt(rcp_var)),'r -- ','linewi',2);
-h(4) = plot([1 1]*target,[0 0.30],'k--','linewi',2); 
 
-a = normpdf(t,hist_clim + warming,sqrt(hist_var + 0.40 .* warming - 1.32));
+warming = 6;
+h(1) = plot(t,normpdf(t,hist_clim,sqrt(hist_var)),'color',[1 1 1]*.7,'linewi',3);
+
+a = normpdf(t,hist_clim + warming,sqrt(hist_var + 0.40 .* warming - 1.33));
 a(t < target) = 0;
 nansum(a)
-h(5) = bar(t,a,'linest','none','facecolor',[1 .4 .4]);
+% h(5) = bar(t,a,'linest','none','facecolor',[1 .4 .4]);
+h(5) = patch(t,a,[1 .4 .4],'linest','none');
 
-a    = normpdf(t,hist_clim + warming,sqrt(rcp_var));
+a    = normpdf(t,hist_clim + warming,sqrt(hist_var));
 a(t < target) = 0;
 nansum(a)
-h(6) = bar(t,a,'linest','none','facecolor',[1 .7 .7]);
+% h(6) = bar(t,a,'linest','none','facecolor',[.7 .7 .7]-.4);
+h(6) = patch(t,a,[.4 .4 .4],'linest','none');
+
+h(2) = plot(t,normpdf(t,hist_clim + warming,sqrt(hist_var + 0.40 .* warming - 1.33)),'r','linewi',2);
+h(3) = plot(t,normpdf(t,hist_clim + warming,sqrt(hist_var)),'k- ','linewi',2);
+% h(4) = plot([1 1]*target,[0 0.30],'k--','linewi',2); 
 
 CDF_panel([10 37 0 0.03],'','','Monthly mean temperature [^oC]','pdf','fontsize',20)
 
 set(gcf,'position',[.1 10 15 9],'unit','inches')
 set(gcf,'position',[.1 14 11 5],'unit','inches')
-
+%%
 
 clear('Tab')
 ct_1 = 0;
@@ -270,33 +275,32 @@ for target = l1
     ct_2 = 0;
     for warming = l2
         ct_2 = ct_2 + 1;
-        Tab(ct_1,ct_2,1) = 1 - normcdf(target,hist_clim + warming,sqrt(rcp_var));
-        Tab(ct_1,ct_2,2) = 1 - normcdf(target,hist_clim + warming,sqrt(hist_var + 0.4 .* warming - 1.32));
+        Tab(ct_1,ct_2,1) = 1 - normcdf(target,hist_clim + warming,sqrt(hist_var));
+        Tab(ct_1,ct_2,2) = 1 - normcdf(target,hist_clim + warming,sqrt(hist_var + 0.4 .* warming - 1.33));
     end
 end
 
 
 figure(2); clf; hold on;
-a = (Tab(:,:,2)) ./ Tab(:,:,1);
+a = (Tab(:,:,1)) ./ Tab(:,:,2);
 a = discretize(a,list);
 CDF_pcolor(l2,l1,a'+0.1);
 
-for i = 3:1:8    plot([i i],[28 40],'color',[1 1 1]*.75); end
-for i = 29:1:34  plot([2 8],[i i],'color',[1 1 1]*.75,'linewi',1); end
+for i = 3:1:8    plot([i i],[28 40],':','color',[1 1 1]*.75); end
+for i = 29:1:34  plot([2 8],[i i],':','color',[1 1 1]*.75,'linewi',1); end
 
 a = 1 ./ Tab(:,:,1);
-[C,h] =  contour(l2,l1,a,[1 10 100 1000 10000 100000],'k--','linewi',2);
+[C,h] =  contour(l2,l1,a,[10 100 1000 10000 100000],'k-','linewi',2);
 clabel(C,h,'LabelSpacing',800,'Color','k','FontWeight','bold','FontSize',13)
 
 a = 1 ./ Tab(:,:,2);
-[C,h] =  contour(l2,l1,a,[1 10 100 1000 10000 100000],'b','linewi',2);
-clabel(C,h,'LabelSpacing',2000,'Color','b','FontWeight','bold','FontSize',13)
+[C,h] =  contour(l2,l1,a,[10 100 1000 10000 100000],'color',[.55 0 0],'linewi',2);
+clabel(C,h,'LabelSpacing',2000,'Color',[.55 0 0],'FontWeight','bold','FontSize',15)
 
-
-b2rCD(11,0);
+col = flipud(b2rCD(11,0));  colormap(gca,col);
 CDF_panel([3 8 28 35],'','','Warming [^oC]','Threshold [^oC]','fontsize',20)
 h = colorbar;
-ylabel(h,'Probability ratio')
+ylabel(h,'Ratio in return period')
 a = {'','1/200','1/100','1/50','1/30','1/20','1/15','1/10','1/5','1/3','1/2',...
     '1','2','3','5','10','15','20','30','50','100','200',''};
 set(h,'ytick',[2:2:numel(list)],'yticklabel',a(2:2:end));
@@ -306,4 +310,4 @@ caxis([1 numel(list)])
 daspect([1 3 1])
 
 set(gcf,'position',[.1 10 15 9],'unit','inches')
-set(gcf,'position',[.1 10 11 9],'unit','inches')
+set(gcf,'position',[10 12 11 9],'unit','inches')
